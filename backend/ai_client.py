@@ -1,53 +1,58 @@
 # backend/ai_client.py
-import random
 
-def analyze_text(text: str):
+def analyse_text(text: str) -> dict:
     """
-    Analyzes patient condition text and returns:
-    - Possible medication suggestions
-    - Necessary precautions
-    - Alternatives if medications not available
+    Analyze the given text (prescription, patient condition, or pharmacist input)
+    and return medications, alternatives, and prescriptions.
     """
-    if not text or text.strip() == "":
-        return {"error": "No condition provided"}
 
-    # Mock logic (replace later with IBM Watson / HuggingFace integration)
-    conditions = {
-        "fever": {
-            "medications": ["Paracetamol 500mg", "Ibuprofen"],
-            "precautions": ["Stay hydrated", "Take rest", "Monitor temperature"],
-            "alternatives": ["Acetaminophen", "Aspirin (not for children)"]
-        },
-        "cold": {
-            "medications": ["Cetirizine", "Antihistamines"],
-            "precautions": ["Drink warm fluids", "Avoid cold drinks"],
-            "alternatives": ["Loratadine", "Fexofenadine"]
-        },
-        "headache": {
-            "medications": ["Paracetamol", "Ibuprofen"],
-            "precautions": ["Rest in dark room", "Avoid loud noise"],
-            "alternatives": ["Naproxen", "Aspirin"]
-        }
-    }
+    text_lower = text.lower().strip()
 
-    # Pick based on keywords
-    selected = None
-    for key, val in conditions.items():
-        if key in text.lower():
-            selected = val
-            break
-
-    if not selected:
-        # Generic fallback
-        selected = {
-            "medications": ["Consult a physician"],
-            "precautions": ["Maintain healthy lifestyle"],
-            "alternatives": ["None available"]
+    # --- Patient condition-based logic ---
+    if "cold" in text_lower:
+        return {
+            "patient_condition": "Cold",
+            "recommended_medications": ["AlegraM"],
+            "alternative_medications": ["Montelukast"],
+            "prescription_steps": [
+                "Take AlegraM once daily after meals",
+                "Alternative: Montelukast at night if symptoms persist"
+            ]
         }
 
+    elif "fever" in text_lower:
+        return {
+            "patient_condition": "Fever",
+            "recommended_medications": ["Paracetamol"],
+            "alternative_medications": ["Dolo650"],
+            "prescription_steps": [
+                "Take Paracetamol every 6-8 hours as needed",
+                "Alternative: Dolo650 after meals if fever is high"
+            ]
+        }
+
+    # --- Pharmacist substitution-based logic ---
+    elif "paracetamol" in text_lower:
+        return {
+            "medicine_given": "Paracetamol",
+            "substitute": "Dolo650",
+            "note": "Suggesting equivalent substitute medicine."
+        }
+
+    elif "alegram" in text_lower:
+        return {
+            "medicine_given": "AlegraM",
+            "substitute": "Montelukast",
+            "note": "Suggesting equivalent substitute medicine."
+        }
+
+    # --- Default fallback ---
     return {
-        "condition": text,
-        "medications": selected["medications"],
-        "precautions": selected["precautions"],
-        "alternatives": selected["alternatives"]
+        "patient_condition": text,
+        "recommended_medications": ["Medicine A", "Medicine B"],
+        "alternative_medications": ["Alt Medicine X", "Alt Medicine Y"],
+        "prescription_steps": [
+            "Take Medicine A twice a day after meals",
+            "Take Medicine B once at night"
+        ]
     }

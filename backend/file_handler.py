@@ -1,23 +1,24 @@
-# backend/filehandler.py
-import os
+from pathlib import Path
+import shutil
 from fastapi import UploadFile
 
-UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "uploads")
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+# Ensure uploads directory exists
+UPLOAD_DIR = Path(__file__).parent / "uploads"
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
-def save_uploaded_file(file: UploadFile) -> str:
+
+def save_upload_file(upload_file: UploadFile) -> str:
     """
-    Saves uploaded file into backend/uploads folder
-    Returns file path
+    Save an uploaded file to the uploads directory and return the file path.
     """
-    if not file.filename:  # Ensure filename is not None
-        raise ValueError("Uploaded file must have a valid filename")
+    # Ensure filename is never None
+    filename = upload_file.filename or "uploaded_file"
 
-    file_location = os.path.join(UPLOAD_DIR, str(file.filename))
+    # Create full file path
+    file_path = UPLOAD_DIR / filename
 
-    try:
-        with open(file_location, "wb+") as f:
-            f.write(file.file.read())
-        return file_location
-    except Exception as e:
-        raise Exception(f"File saving failed: {str(e)}")
+    # Save the uploaded file
+    with file_path.open("wb") as buffer:
+        shutil.copyfileobj(upload_file.file, buffer)
+
+    return str(file_path)

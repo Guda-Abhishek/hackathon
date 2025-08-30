@@ -1,36 +1,55 @@
-# backend/main.py
-from fastapi import FastAPI, UploadFile, Form
+from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
-from ai_client import analyze_text
-from file_handler import save_uploaded_file
-
+from backend.file_handler import save_upload_file
+from backend.ai_client import analyse_text
+from pydantic import BaseModel
 app = FastAPI()
 
-# Allow frontend requests
+# Allow frontend connections
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # change in production
+    allow_origins=["*"],  # Replace with frontend URL if needed
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 @app.get("/")
-def home():
-    return {"message": "AI Medication Backend Running"}
+async def root():
+    return {"message": "AI Medication Backend is running"}
 
-@app.post("/analyze_text/")
-def analyze_condition(condition: str = Form(...)):
-    """
-    Doctor/Patient condition analysis
-    """
-    result = analyze_text(condition)
-    return result
-
-@app.post("/upload_condition/")
-def upload_condition(file: UploadFile):
-    """
-    Uploads a file containing patient condition
-    """
-    file_path = save_uploaded_file(file)
+# --------------------- Patient ---------------------
+@app.post("/patient/upload")
+async def patient_upload(file: UploadFile = File(...)):
+    file_path = save_upload_file(file)
     return {"message": "File uploaded successfully", "file_path": file_path}
+
+@app.post("/patient/analyze")
+async def patient_text_analysis(text: str = Form(...)):
+    result = analyse_text(text)
+    return {"analysis": result}
+
+# ---------------- Doctor Routes ----------------
+class DoctorInput(BaseModel):
+    condition: str
+    precautions: str
+
+@app.post("/doctor/add_condition")
+async def add_condition(data: DoctorInput):
+    return {
+        "message": "Successfully uploaded",
+        "condition": data.condition,
+        "precautions": data.precautions
+    }
+# ---------------- Pharmacist Routes ----------------
+@app.post("/pharmacist")
+async def pharmacist_submit(
+    prescription: str = Form(...),
+    alternative: str = Form(...)
+):
+    response = {
+        "prescription": prescription,
+        "alternative": alternative,
+        "status": "Pharmacist entry submitted successfully"
+    }
+    return response

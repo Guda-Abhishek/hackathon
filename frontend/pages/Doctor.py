@@ -1,24 +1,29 @@
 import streamlit as st
 import requests
 
-API_URL = "http://localhost:8000/doctor"
+st.title("👨‍⚕️ Doctor Dashboard")
 
-def main():
-    st.title("👨‍⚕️ Doctor Dashboard")
-    st.write("Fill out patient condition details to generate possible medications and precautions.")
+st.subheader("Add Patient Condition & Precautions")
 
-    with st.form("doctor_form"):
-        condition = st.text_area("Enter Patient Condition")
-        precautions = st.text_area("Enter Necessary Precautions")
-        submit = st.form_submit_button("Generate Medication Plan")
+# Input fields
+condition = st.text_area("Enter Patient Condition")
+precautions = st.text_area("Enter Precautions")
 
-    if submit and condition:
-        response = requests.post(API_URL, json={"condition": condition, "precautions": precautions})
+if st.button("Submit"):
+    if condition.strip() and precautions.strip():
+        # Send to backend
+        response = requests.post(
+            "http://localhost:8000/doctor/add_condition",
+            json={"condition": condition, "precautions": precautions}
+        )
         if response.status_code == 200:
-            st.success("Medication Plan Generated")
-            st.json(response.json())
+            result = response.json()
+            st.success(result["message"])
+            st.write("### Condition:")
+            st.info(result["condition"])
+            st.write("### Precautions:")
+            st.warning(result["precautions"])
         else:
-            st.error("Error generating medication plan")
-
-if __name__ == "__main__":
-    main()
+            st.error("❌ Failed to upload. Try again.")
+    else:
+        st.error("⚠️ Please enter both condition and precautions.")
