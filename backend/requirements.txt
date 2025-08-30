@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+python-dotenv
+requests
+flask
+ibm-generative-ai
+flask-cors
+transformers
+torch
